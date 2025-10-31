@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Pagina non trovata | KTS Edu" />
+  <title>Pagina Non Trovata | KTS Edu</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #f8f9fa; /* Sfondo grigio chiaro */
+      --panel: #ffffff; /* Pannelli bianchi */
+      --accent: #0078d4; /* Blu Microsoft */
+      --accent2: #005a9e; /* Blu scuro */
+      --muted: #6c757d; /* Testo grigio */
+      --text-primary: #212529; /* Testo principale scuro */
+      --border-light: #e0e0e0;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column; /* Imposta la direzione a colonna per far funzionare flex-grow */
+      align-items: center;
+      padding: 0;
+      position: relative;
+    }
+
+    /* Header - Stile identico a index.html */
+    header {
+      width: 100%;
+      text-align: center;
+      padding: 40px 20px 40px 20px;
+      background: var(--panel);
+      position: relative;
+      z-index: 5;
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .header-logo-text {
+      font-family: 'Fira Code', monospace;
+      font-size: 24px;
+      color: var(--text-primary);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .header-logo-text span {
+      color: var(--accent);
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Main - Stile per centrare il contenuto 404 */
+    main {
+      width: 100%;
+      max-width: 1200px;
+      padding: 40px;
+      position: relative;
+      z-index: 5;
+      
+      /* Stili per centrare verticalmente e orizzontalmente */
+      flex-grow: 1; /* Fa sì che main occupi lo spazio rimanente */
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    /* Contenuto 404 */
+    .error-container h1 {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 10rem; /* Molto grande */
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 0;
+    }
+    
+    .error-container h2 {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 2.5rem;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    
+    .error-container p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+      max-width: 400px;
+    }
+
+    /* Pulsante per tornare alla Home */
+    .home-button {
+      display: inline-block;
+      font-family: 'Inter', sans-serif;
+      background: var(--accent);
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: background-color 0.2s;
+    }
+    
+    .home-button:hover {
+      background: var(--accent2);
+    }
+
+    /* Footer - Stile identico a index.html */
+    footer {
+      margin-top: 40px; /* Rimosso, gestito da flex-grow su main */
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      padding: 30px;
+      width: 100%;
+      border-top: 1px solid var(--border-light);
+      background: var(--panel);
+      position: relative;
+      z-index: 5;
+    }
+    
+    /* Media query per dispositivi mobili */
+    @media(max-width: 800px) {
+      main { padding: 20px; }
+      .error-container h1 { font-size: 6rem; }
+      .error-container h2 { font-size: 1.75rem; }
+      .error-container p { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <!-- Logo e titolo identici a index.html -->
+    <div class="header-logo-text"><span>edu.</span>softwares.kekkotech.com</div>
+    <p>Il portale didattico di <strong>KekkoTech Softwares - KTS</strong></p>
+  </header>
+
+  <main>
+    <div class="error-container">
+      <h1>404</h1>
+      <h2>Pagina Non Trovata</h2>
+      <p>
+        La risorsa che stai cercando potrebbe essere stata rimossa,
+        rinominata o non è temporaneamente disponibile.
+      </p>
+      <a href="index.html" class="home-button">Torna alla Homepage</a>
+    </div>
+  </main>
+
+  <footer>
+    <!-- Footer identico a index.html -->
+    © 2025 KekkoTech Softwares (KTS) — All rights reserved.<br>
+    Designed with ❤ by KTS Dev Team.
+  </footer>
+
+  <!-- Nessuno script necessario per questa pagina -->
+
+</body>
+</html>
+

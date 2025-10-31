@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Il portale didattico di KekkoTech Softwares" />
+  <title>Home Page | KTS Edu</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@600&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide-dev"></script>
+  
+  <style>
+    :root {
+      --bg: #f8f9fa; /* Sfondo grigio chiaro */
+      --panel: #ffffff; /* Pannelli bianchi */
+      --accent: #0078d4; /* Blu Microsoft */
+      --accent2: #005a9e; /* Blu scuro */
+      --muted: #6c757d; /* Testo grigio */
+      --text-primary: #212529; /* Testo principale scuro */
+      --border-light: #e0e0e0;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0;
+      position: relative;
+    }
+    
+    /* Rimossi: Effetto Scanline e Matrice */
+
+    header {
+      width: 100%;
+      text-align: center;
+      padding: 40px 20px 40px 20px;
+      background: var(--panel);
+      position: relative;
+      z-index: 5;
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    /* Logo in Fira Code */
+    .header-logo-text {
+      font-family: 'Fira Code', monospace;
+      font-size: 24px;
+      color: var(--text-primary);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .header-logo-text span {
+      color: var(--accent);
+    }
+
+    /* Rimossi: header::after (linea glow) e .header-logo (SVG) */
+
+    header h1 {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1200px; /* Layout più largo */
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 32px; /* Spazio tra le sezioni */
+      padding: 40px;
+      position: relative;
+      z-index: 5;
+    }
+
+    section {
+       /* Sezione ora è solo un contenitore */
+    }
+
+    h2 {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 24px;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+      text-transform: none;
+      letter-spacing: 0;
+      position: relative;
+      display: block;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    
+    /* Rimosso h2::before (prompt) */
+
+    /* Griglia delle Card */
+    ul {
+      list-style: none;
+      display: grid;
+      /* Griglia responsive: riempie lo spazio con card di min 300px */
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    /* Stile della Card */
+    li {
+      background: var(--panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: flex; /* Permette ad <a> di riempire l'altezza */
+    }
+
+    /* Stile hover per la card */
+    li:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    
+    /* Rimosso li:hover a (gestito diversamente) */
+    
+    li a {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 500;
+      display: flex;
+      flex-direction: column; /* Layout verticale per il contenuto della card */
+      gap: 0;
+      padding: 24px;
+      height: 100%; /* La card cliccabile riempie li */
+      width: 100%;
+    }
+    
+    /* Stile per Titolo Card (nuovo) */
+    li h3 {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      transition: color 0.2s;
+    }
+    
+    li a:hover h3 {
+      color: var(--accent); /* Il titolo diventa blu su hover */
+    }
+    
+    /* Stile Icona (dentro la card) */
+    .card-icon-bg {
+      width: 48px;
+      height: 48px;
+      background: var(--accent);
+      color: #ffffff;
+      border-radius: var(--radius); /* Quadrato arrotondato */
+      display: grid;
+      place-items: center;
+      margin-bottom: 16px;
+    }
+
+    .lucide {
+      stroke-width: 2;
+      width: 24px;
+      height: 24px;
+      color: #ffffff; /* Icona bianca su sfondo blu */
+    }
+    
+    /* Descrizione della Card */
+    .link-description {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      color: var(--muted);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      flex-grow: 1; /* Spinge il testo in basso se le card hanno altezze diverse */
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      padding: 30px;
+      width: 100%;
+      border-top: 1px solid var(--border-light);
+      background: var(--panel);
+      position: relative;
+      z-index: 5;
+    }
+    
+    /* Rimosso: .matrix-bg */
+    
+    /* Media query per dispositivi mobili */
+    @media(max-width: 800px) {
+      main { padding: 20px; }
+      ul {
+        /* Colonne singole su mobile */
+        grid-template-columns: 1fr;
+      }
+      header h1 { font-size: 22px; }
+      header p { font-size: 15px; }
+      h2 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <!-- Logo e titolo aggiornati -->
+    <div class="header-logo-text"><span>edu.</span>softwares.kekkotech.com</div>
+    <p>Il portale didattico di <strong>KekkoTech Softwares - KTS</strong></p>
+  </header>
+
+  <main>
+    <section id="italian">
+      <h2>Contenuti in Italiano 🇮🇹</h2>
+      <ul>
+        <!-- Struttura card #1 -->
+        <li>
+          <a href="/it/fromctoasm.html">
+            <div class="card-icon-bg">
+              <i data-lucide="book-open"></i>
+            </div>
+            <h3>Guida rapida: da C ad Assembly RISC-V</h3>
+            <p class="link-description">
+              Impara a tradurre semplici programmi C in codice assembly per l'architettura RISC-V.
+            </p>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section id="english">
+      <h2>English Contents 🇬🇧</h2>
+      <ul>
+        <!-- Struttura card #6 -->
+        <li>
+          <a href="/404.html">
+            <div class="card-icon-bg">
+              <i data-lucide="book-open"></i>
+            </div>
+            <h3>To be implemented</h3>
+            <p class="link-description">
+              Coming soon...
+            </p>
+          </a>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 KekkoTech Softwares (KTS) — All rights reserved.<br>
+    Designed with ❤ by KTS Dev Team.
+  </footer>
+
+  <script>
+    // Rimosso tutto lo script della matrice.
+    // Lasciato solo l'inizializzatore per le icone Lucide.
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
+
