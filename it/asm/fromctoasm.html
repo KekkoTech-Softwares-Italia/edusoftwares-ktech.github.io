@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guida Rapida: da C a Assembly RISC-V (64-bit)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 5px;
+        }
+        h1 {
+            font-size: 2.2em;
+            border-bottom: 3px solid #0056b3;
+        }
+        h2 {
+            font-size: 1.8em;
+        }
+        h3 {
+            font-size: 1.4em;
+            border-bottom: 1px solid #e9ecef;
+        }
+        p, ul, li {
+            font-size: 1.1em;
+            margin-bottom: 1em;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 0.5em;
+        }
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 0.95em;
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        pre {
+            background-color: #282c34; /* Dark background per i blocchi di codice */
+            color: #abb2bf; /* Colore testo chiaro */
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit; /* Eredita il colore dal tag <pre> */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5em;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+        }
+        tbody tr:nth-child(odd) {
+            background-color: #f8f9fa;
+        }
+        blockquote {
+            border-left: 5px solid #0056b3;
+            padding-left: 15px;
+            margin-left: 0;
+            font-style: italic;
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Guida Rapida: da C a Assembly RISC-V (64-bit)</h1>
+        
+        <p>Tradurre da C ad Assembly significa "smontare" la logica di alto livello (come <code>if</code>, <code>while</code>, <code>+</code>) in istruzioni meccaniche che la CPU può eseguire.</p>
+        
+        <p>La tua risorsa più importante è la <strong>Convenzione ABI</strong> (Application Binary Interface) di RISC-V, che definisce come vengono usati i registri.</p>
+        
+        <h2>I Registri Fondamentali (ABI)</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Registri</th>
+                    <th>Alias</th>
+                    <th>Utilizzo Principale</th>
+                    <th>Chi lo salva?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>x0</td>
+                    <td>zero</td>
+                    <td>Valore costante 0</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>x1</td>
+                    <td>ra</td>
+                    <td><strong>R</strong>eturn <strong>A</strong>ddress (Indirizzo di ritorno)</td>
+                    <td>Chiamante</td>
+                </tr>
+                <tr>
+                    <td>x2</td>
+                    <td>sp</td>
+                    <td><strong>S</strong>tack <strong>P</strong>ointer (Puntatore allo Stack)</td>
+                    <td>Chiamato</td>
+                </tr>
+                <tr>
+                    <td>x8</td>
+                    <td>s0/fp</td>
+                    <td><strong>S</strong>aved Register 0 / Frame Pointer</td>
+                    <td>Chiamato</td>
+                </tr>
+                <tr>
+                    <td>x9</td>
+                    <td>s1</td>
+                    <td><strong>S</strong>aved Register 1</td>
+                    <td>Chiamato</td>
+                </tr>
+                <tr>
+                    <td>x10-x11</td>
+                    <td>a0-a1</td>
+                    <td><strong>A</strong>rgomenti 0-1 / Valore di ritorno</td>
+                    <td>Chiamante</td>
+                </tr>
+                <tr>
+                    <td>x12-x17</td>
+                    <td>a2-a7</td>
+                    <td><strong>A</strong>rgomenti 2-7</td>
+                    <td>Chiamante</td>
+                </tr>
+                <tr>
+                    <td>"x5-x7, x28-x31"</td>
+                    <td>t0-t6</td>
+                    <td><strong>T</strong>emporary (Registri temporanei)</td>
+                    <td>Chiamante</td>
+                </tr>
+                <tr>
+                    <td>x18-x27</td>
+                    <td>s2-s11</td>
+                    <td><strong>S</strong>aved Registers 2-11</td>
+                    <td>Chiamato</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <ul>
+            <li><strong>Chiamante (Caller):</strong> La funzione che esegue <code>call</code>. È responsabile di salvare i registri <code>t</code> e <code>a</code> <em>prima</em> della chiamata, se le servono dopo.</li>
+            <li><strong>Chiamato (Callee):</strong> La funzione che <em>viene</em> chiamata. È responsabile di salvare <code>ra</code> e i registri <code>s</code> che usa, per poi ripristinarli <em>prima</em> di ritornare.</li>
+        </ul>
+
+        <h2>Registri in Virgola Mobile (ABI - Estensione 'D')</h2>
+        <p>Per <code>float</code> (32-bit) e <code>double</code> (64-bit) si usano registri separati.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Registri</th>
+                    <th>Alias</th>
+                    <th>Utilizzo Principale</th>
+                    <th>Chi lo salva?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>f0-f7</td>
+                    <td>ft0-ft7</td>
+                    <td><strong>T</strong>emporary (Virgola Mobile)</td>
+                    <td>Chiamante</td>
+                </tr>
+                <tr>
+                    <td>f8-f9</td>
+                    <td>fs0-fs1</td>
+                    <td><strong>S</strong>aved (Virgola Mobile)</td>
+                    <td>Chiamato</td>
+                </tr>
+                <tr>
+                    <td>f10-f11</td>
+                    <td>fa0-fa1</td>
+                    <td><strong>A</strong>rgomenti / Valori di ritorno (FP)</td>
+                    <td>Chiamante</td>
+                </tr>
+                <tr>
+                    <td>f12-f17</td>
+                    <td>fa2-fa7</td>
+                    <td><strong>A</strong>rgomenti (FP)</td>
+                    <td>Chiamante</td>
+                </tr>
+                <tr>
+                    <td>f18-f27</td>
+                    <td>fs2-fs11</td>
+                    <td><strong>S</strong>aved (Virgola Mobile)</td>
+                    <td>Chiamato</td>
+                </tr>
+                <tr>
+                    <td>f28-f31</td>
+                    <td>ft8-ft11</td>
+                    <td><strong>T</strong>emporary (Virgola Mobile)</td>
+                    <td>Chiamante</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>🛠️ Comandi Principali (Cheat Sheet)</h2>
+        <p>Ecco le istruzioni più comuni che userai.</p>
+        
+        <h3>1. Aritmetica e Logica</h3>
+        <blockquote>
+            <strong>Nota importante:</strong> RV64 ha istruzioni standard (64-bit) e istruzioni "Word" (32-bit, con suffisso <code>w</code>).
+            Poiché il C usa spesso <code>int</code> (32-bit), userai molto le versioni <code>w</code>.
+        </blockquote>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Istruzione</th>
+                    <th>Esempio</th>
+                    <th>Significato</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>add rd, rs1, rs2</code></td>
+                    <td><code>add s0, s1, s2</code></td>
+                    <td>s0 = s1 + s2 (64-bit)</td>
+                </tr>
+                <tr>
+                    <td><code>addw rd, rs1, rs2</code></td>
+                    <td><code>addw s0, s1, s2</code></td>
+                    <td>s0 = s1 + s2 (32-bit)</td>
+                </tr>
+                <tr>
+                    <td><code>subw rd, rs1, rs2</code></td>
+                    <td><code>subw s0, s1, s2</code></td>
+                    <td>s0 = s1 - s2 (32-bit)</td>
+                </tr>
+                <tr>
+                    <td><code>addi rd, rs1, imm</code></td>
+                    <td><code>addi s0, s1, 5</code></td>
+                    <td>s0 = s1 + 5 (Immediato)</td>
+                </tr>
+                <tr>
+                    <td><code>addiw rd, rs1, imm</code></td>
+                    <td><code>addiw s0, s1, 5</code></td>
+                    <td>s0 = s1 + 5 (32-bit)</td>
+                </tr>
+                <tr>
+                    <td><code>slli rd, rs1, shamt</code></td>
+                    <td><code>slli t0, s0, 2</code></td>
+                    <td>t0 = s0 &lt;&lt; 2 (Shift logico a sinistra)</td>
+                </tr>
+                <tr>
+                    <td><code>andi rd, rs1, imm</code></td>
+                    <td><code>andi s0, s0, 0xFF</code></td>
+                    <td>s0 = s0 &amp; 255 (AND bit a bit)</td>
+                </tr>
+                <tr>
+                    <td><code>li rd, imm</code></td>
+                    <td><code>li s0, 10</code></td>
+                    <td>s0 = 10 (Pseudo-istruzione: Load Immediate)</td>
+                </tr>
+                <tr>
+                    <td><code>mv rd, rs</code></td>
+                    <td><code>mv a0, s0</code></td>
+                    <td>a0 = s0 (Pseudo-istruzione: <code>addi a0, s0, 0</code>)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>2. Memoria (Load/Store)</h3>
+        <p>Si usa l'indirizzamento <code>offset(base)</code>. <code>8(sp)</code> significa "l'indirizzo 8 byte sopra quello puntato da <code>sp</code>".</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Istruzione</th>
+                    <th>Esempio</th>
+                    <th>Significato</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>ld rd, offset(rs1)</code></td>
+                    <td><code>ld s0, 8(sp)</code></td>
+                    <td><strong>L</strong>oad <strong>D</strong>oubleword (Carica 64-bit da stack)</td>
+                </tr>
+                <tr>
+                    <td><code>sd rs2, offset(rs1)</code></td>
+                    <td><code>sd s0, 8(sp)</code></td>
+                    <td><strong>S</strong>tore <strong>D</strong>oubleword (Salva 64-bit su stack)</td>
+                </tr>
+                <tr>
+                    <td><code>lw rd, offset(rs1)</code></td>
+                    <td><code>lw s0, 0(a0)</code></td>
+                    <td><strong>L</strong>oad <strong>W</strong>ord (Carica 32-bit da a0)</td>
+                </tr>
+                <tr>
+                    <td><code>sw rs2, offset(rs1)</code></td>
+                    <td><code>sw s0, 4(a0)</code></td>
+                    <td><strong>S</strong>tore <strong>W</strong>ord (Salva 32-bit in a0 + 4)</td>
+                </tr>
+                <tr>
+                    <td><code>lb rd, offset(rs1)</code></td>
+                    <td><code>lb t0, 0(a0)</code></td>
+                    <td><strong>L</strong>oad <strong>B</strong>yte (Carica 8-bit)</td>
+                </tr>
+                <tr>
+                    <td><code>sb rs2, offset(rs1)</code></td>
+                    <td><code>sb t0, 0(a0)</code></td>
+                    <td><strong>S</strong>tore <strong>B</strong>yte (Salva 8-bit)</td>
+                </tr>
+                <tr>
+                    <td><code>la rd, label</code></td>
+                    <td><code>la a0, MY_ARRAY</code></td>
+                    <td><strong>L</strong>oad <strong>A</strong>ddress (Pseudo-istruzione)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>3. Controllo di Flusso (Salti)</h3>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Istruzione</th>
+                    <th>Esempio</th>
+                    <th>Significato</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>j label</code></td>
+                    <td><code>j .L_LOOP</code></td>
+                    <td><strong>J</strong>ump (Salta incondizionatamente)</td>
+                </tr>
+                <tr>
+                    <td><code>beq rs1, rs2, label</code></td>
+                    <td><code>beq s0, s1, .L_END</code></td>
+                    <td><strong>B</strong>ranch if <strong>EQ</strong>ual (Salta se s0 == s1)</td>
+                </tr>
+                <tr>
+                    <td><code>bne rs1, rs2, label</code></td>
+                    <td><code>bne s0, a1, .L_LOOP</code></td>
+                    <td><strong>B</strong>ranch if <strong>N</strong>ot <strong>E</strong>qual (Salta se s0 != a1)</td>
+                </tr>
+                <tr>
+                    <td><code>blt rs1, rs2, label</code></td>
+                    <td><code>blt s0, a1, .L_LOOP</code></td>
+                    <td><strong>B</strong>ranch if <strong>L</strong>ess <strong>T</strong>han (con segno)</td>
+                </tr>
+                <tr>
+                    <td><code>bge rs1, rs2, label</code></td>
+                    <td><code>bge s0, a1, .L_END</code></td>
+                    <td><strong>B</strong>ranch if <strong>G</strong>reater or <strong>E</strong>qual (con segno)</td>
+                </tr>
+                <tr>
+                    <td><code>jal label</code></td>
+                    <td><code>jal sum_array</code></td>
+                    <td><strong>J</strong>ump <strong>a</strong>nd <strong>L</strong>ink (Chiama funzione, salva <code>ra</code>)</td>
+                </tr>
+                <tr>
+                    <td><code>ret</code></td>
+                    <td><code>ret</code></td>
+                    <td><strong>Ret</strong>urn (Pseudo-istruzione: <code>jalr zero, 0(ra)</code>)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>4. Virgola Mobile (Estensione 'D')</h3>
+        <p>Usano i registri <code>f</code>. Il suffisso <code>.s</code> è per <code>float</code> (Single-precision, 32-bit), <code>.d</code> per <code>double</code> (Double-precision, 64-bit).</p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Istruzione</th>
+                    <th>Esempio</th>
+                    <th>Significato</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>fld rd, offset(rs1)</code></td>
+                    <td><code>fld fa0, 0(a0)</code></td>
+                    <td><strong>L</strong>oad <strong>D</strong>ouble (Carica double da a0)</td>
+                </tr>
+                <tr>
+                    <td><code>fsd rs2, offset(rs1)</code></td>
+                    <td><code>fsd fa0, 8(sp)</code></td>
+                    <td><strong>S</strong>tore <strong>D</strong>ouble (Salva double su stack)</td>
+                </tr>
+                <tr>
+                    <td><code>flw rd, offset(rs1)</code></td>
+                    <td><code>flw fa0, 0(a0)</code></td>
+                    <td><strong>L</strong>oad <strong>W</strong>ord (Carica float da a0)</td>
+                </tr>
+                <tr>
+                    <td><code>fsw rs2, offset(rs1)</code></td>
+                    <td><code>fsw fa0, 4(sp)</code></td>
+                    <td><strong>S</strong>tore <strong>W</strong>ord (Salva float su stack)</td>
+                </tr>
+                <tr>
+                    <td><code>fadd.d rd, rs1, rs2</code></td>
+                    <td><code>fadd.d fa0, fa0, fa1</code></td>
+                    <td>fa0 = fa0 + fa1 (Somma di double)</td>
+                </tr>
+                <tr>
+                    <td><code>fsub.s rd, rs1, rs2</code></td>
+                    <td><code>fsub.s fa0, fa0, fa1</code></td>
+                    <td>fa0 = fa0 - fa1 (Sottrazione di float)</td>
+                </tr>
+                <tr>
+                    <td><code>fmul.d rd, rs1, rs2</code></td>
+                    <td><code>fmul.d fa0, fa0, fa1</code></td>
+                    <td>fa0 = fa0 * fa1 (Prodotto di double)</td>
+                </tr>
+                <tr>
+                    <td><code>fdiv.s rd, rs1, rs2</code></td>
+                    <td><code>fdiv.s fa0, fa0, fa1</code></td>
+                    <td>fa0 = fa0 / fa1 (Divisione di float)</td>
+                </tr>
+                <tr>
+                    <td><code>fcvt.w.d rd, rs1</code></td>
+                    <td><code>fcvt.w.d s0, fa0</code></td>
+                    <td>Converte double (fa0) in int (s0)</td>
+                </tr>
+                <tr>
+                    <td><code>fcvt.d.w rd, rs1</code></td>
+                    <td><code>fcvt.d.w fa0, s0</code></td>
+                    <td>Converte int (s0) in double (fa0)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>🔁 Esempi di Traduzione C -> Assembly</h2>
+
+        <h3>1. Aritmetica Semplice</h3>
+        <pre><code>// C
+int a = 10;
+int b = 20;
+int c = a + b;
+
+# Assembly (ipotizzando che a,b,c siano in s0,s1,s2)
+    li   s0, 10       # a = 10
+    li   s1, 20       # b = 20
+    addw s2, s0, s1   # c = a + b (usiamo addw per 'int' a 32-bit)</code></pre>
+
+        <h3>2. Costrutto if</h3>
+        <p>La logica è "al contrario": si salta se la condizione <em>non</em> è vera.</p>
+        <pre><code>// C
+if (i < 10) {
+    // corpo 'then'
+    a = a + 1;
+}
+// 'else' (o continuazione)
+b = 0;
+
+# Assembly
+# i in s0, a in s1, b in s2
+# 10 è in un temporaneo t0
+    li t0, 10        # Controlla la condizione (i < 10)
+    # Salta alla fine (.L_END) se la condizione è FALSA (i >= 10)
+    bge s0, t0, .L_END
+    
+    # Corpo 'then' (eseguito solo se il salto non avviene)
+    addiw s1, s1, 1   # a = a + 1
+.L_END:
+    # Continuazione
+    li s2, 0          # b = 0</code></pre>
+
+        <h3>3. Ciclo for (come sum_array)</h3>
+        <p>Questo è il modello più importante da imparare.</p>
+        <pre><code>// C
+int sum = 0;
+for (int i = 0; i < size; i++) {
+    sum += arr[i];
+}
+
+# Assembly
+# sum in s0, i in s1
+# size in a1 (argomento)
+# &arr[0] in a0 (argomento)
+
+    li s0, 0          # sum = 0
+    li s1, 0          # i = 0
+.L_LOOP_START:
+    # 1. Condizione: if (i >= size) salta alla fine
+    bge s1, a1, .L_LOOP_END
+    
+    # 2. Calcola indirizzo: &arr[i]
+    #    Dato che 'int' è 4 byte, l'offset è i * 4 
+    slli t0, s1, 2     # t0 = i * 4
+    add  t1, a0, t0    # t1 = indirizzo_base_arr + offset = &arr[i]
+    
+    # 3. Carica valore: arr[i]
+    lw t2, 0(t1)     # t2 = valore all'indirizzo t1 (lw per 'int')
+    
+    # 4. Esegui corpo: sum += arr[i]
+    addw s0, s0, t2    # sum = sum + valore (addw per 'int')
+    
+    # 5. Incremento: i++  
+    addi s1, s1, 1
+    
+    # 6. Ripeti
+    j .L_LOOP_START
+.L_LOOP_END:
+    # Finito. 'sum' (in s0) è pronto.
+    # (Metterlo in a0 prima di 'ret' per restituirlo)
+    mv a0, s0
+    ret</code></pre>
+
+        <h3>4. Ciclo while</h3>
+        <p>Molto simile al <code>for</code>, ma l'incremento è all'interno del corpo.</p>
+        <pre><code>// C
+int i = 0;
+int sum = 0;
+while (i < size) {
+    sum += arr[i];
+    i++;
+}
+
+# Assembly
+# sum in s0, i in s1
+# size in a1 (argomento)
+# &arr[0] in a0 (argomento)
+    li s0, 0          # sum = 0
+    li s1, 0          # i = 0
+.L_WHILE_CHECK:
+    # 1. Condizione: if (i >= size) salta alla fine
+    bge s1, a1, .L_WHILE_END
+    
+    # --- Corpo del loop ---
+    # 2. Calcola indirizzo: &arr[i]
+    slli t0, s1, 2     # t0 = i * 4
+    add  t1, a0, t0    # t1 = &arr[i]
+    
+    # 3. Carica valore: arr[i]
+    lw t2, 0(t1)     # t2 = arr[i]
+    
+    # 4. Esegui corpo: sum += arr[i]
+    addw s0, s0, t2    # sum = sum + t2
+    
+    # 5. Incremento: i++
+    addi s1, s1, 1
+    # --- Fine corpo ---
+    
+    # 6. Salta di nuovo al controllo
+    j .L_WHILE_CHECK
+.L_WHILE_END:
+    # Finito
+    mv a0, s0
+    ret</code></pre>
+
+        <h3>5. Ciclo do-while</h3>
+        <p>La caratteristica chiave è che il controllo è <em>alla fine</em>. Il corpo viene eseguito almeno una volta.</p>
+        <pre><code>// C
+int i = 0;
+int x = 10;
+do {
+    x = x - 1;
+    i++;
+} while (i < 5);
+
+# Assembly
+# i in s0, x in s1
+    li s0, 0  # i = 0
+    li s1, 10 # x = 10
+    li t0, 5  # t0 = 5 (per il confronto)
+.L_DO_BODY:
+    # --- Corpo del loop ---
+    # 1. x = x - 1
+    addiw s1, s1, -1
+    
+    # 2. i++
+    addiw s0, s0, 1
+    # --- Fine corpo ---
+    
+    # 3. Condizione: if (i < 5) ripeti
+    # Salta all'indietro se (s0 < t0)
+    blt s0, t0, .L_DO_BODY
+# Finito</code></pre>
+
+        <h3>6. Puntatori</h3>
+        <p>L'aritmetica dei puntatori viene tradotta in aritmetica intera, scalata per la dimensione del tipo.</p>
+        <pre><code>// C
+// (ptr è un 'int*' in a0, val è un 'int' in a1)
+void set_value(int *ptr, int val) {
+    *ptr = val;         // Scrittura
+    ptr++;              // Aritmetica
+    *ptr = val + 1;     // Scrittura
+}
+
+# Assembly
+# ptr in a0, val in a1
+    # 1. *ptr = val;
+    #    Salva la Word (32-bit) in a1 all'indirizzo in a0
+    sw a1, 0(a0)
+    
+    # 2. ptr++;
+    #    Poiché ptr è 'int*', ++ significa "aggiungi 4 byte"
+    addi a0, a0, 4
+    
+    # 3. *ptr = val + 1;
+    #    Calcola prima il valore
+    addi t0, a1, 1
+    #    Poi salva la nuova Word
+    sw t0, 0(a0)
+    
+    ret</code></pre>
+
+        <h3>7. Funzione Ricorsiva (Fattoriale)</h3>
+        <p>Questo è l'esempio più complesso. Richiede una gestione attenta dello stack per salvare <code>ra</code> (indirizzo di ritorno) e <code>n</code> (l'argomento) prima della chiamata ricorsiva.</p>
+        <pre><code>// C
+int fact(int n) {
+    if (n <= 1) {
+        return 1; // Caso base
+    } else {
+        // Passo ricorsivo
+        return n * fact(n - 1);
+    }
+}
+
+# Assembly
+# n è in a0 all'ingresso
+fact:
+    # --- Prologo ---
+    # Dobbiamo salvare 'ra' (perché chiamiamo un'altra funzione)
+    # e 'n' (perché ci serve DOPO la chiamata ricorsiva).
+    # Salveremo n (a0) in s0.
+    
+    addi sp, sp, -16 # Alloca 16 byte (per 2 registri a 64-bit)
+    sd   ra, 8(sp)   # Salva indirizzo di ritorno
+    sd   s0, 0(sp)   # Salva s0 (dove metteremo n)
+    
+    mv s0, a0        # s0 = n (ora n è al sicuro)
+    
+    # --- Corpo ---
+    # 1. Caso Base: if (n <= 1)
+    li t0, 1
+    ble s0, t0, .L_BASE_CASE # Salta al caso base se n <= 1
+    
+    # 2. Passo Ricorsivo (else)
+    # 2a. Prepara argomento per fact(n - 1)
+    addiw a0, s0, -1   # a0 = n - 1
+    
+    # 2b. Chiama fact(n - 1)
+    jal fact           # Chiama ricorsivamente. Il risultato sarà in a0
+    
+    # 2c. Calcola: n * risultato
+    #    n è in s0 (l'abbiamo salvato!)
+    #    risultato (fact(n-1)) è in a0
+    mulw a0, s0, a0    # a0 = s0 * a0 (n * risultato)
+    
+    # 2d. Salta alla fine (per evitare il caso base)
+    j .L_END
+
+.L_BASE_CASE:
+    # Ritorna 1
+    li a0, 1
+.L_END:
+    # --- Epilogo ---
+    # Ripristina i registri nell'ordine inverso
+    ld s0, 0(sp)
+    ld ra, 8(sp)
+    addi sp, sp, 16  # Dealloca stack
+    
+    ret # Ritorna al chiamante (con risultato in a0)</code></pre>
+
+        <h3>8. Funzione con Virgola Mobile (double)</h3>
+        <p>Le variabili <code>float</code> e <code>double</code> vengono passate nei registri <code>fa</code> (es. <code>fa0</code>, <code>fa1</code>).</p>
+        <pre><code>// C
+double add_doubles(double a, double b) {
+    return a + b;
+}
+
+# Assembly
+# a è in fa0, b è in fa1
+add_doubles:
+    # Non c'è bisogno di prologo/epilogo perché
+    # non usiamo registri 's' e non chiamiamo altre funzioni.
+    
+    # 1. Calcola: a + b
+    #    Suffisso '.d' per double
+    fadd.d fa0, fa0, fa1 # fa0 = fa0 + fa1
+    
+    # 2. Ritorna
+    #    Il risultato è già in fa0 (il registro di ritorno)
+    ret</code></pre>
+
+        <h2>📋 Guida Step-by-Step alla Traduzione</h2>
+        <p>Quando traduci una funzione C, segui questi 5 passi.</p>
+
+        <h3>Step 1: Il Piano (Allocazione Registri)</h3>
+        <p>Prima di scrivere una sola riga di assembly, decidi:</p>
+        <ul>
+            <li><strong>Variabili Locali:</strong> Quali variabili userai?</li>
+            <li><strong>Mappatura:</strong> Dove le metterai?
+                <ul>
+                    <li>Le variabili molto usate (contatori, accumulatori) vanno nei registri <code>s</code> (es. <code>s0</code>, <code>s1</code>, <code>s2</code>).</li>
+                    <li>Le variabili "usa e getta" per calcoli intermedi vanno nei registri <code>t</code> (es. <code>t0</code>, <code>t1</code>).</li>
+                    <li>Le variabili "grandi" (array locali) vanno sullo <strong>stack</strong>.</li>
+                </ul>
+            </li>
+            <li><strong>Argomenti:</strong> Gli argomenti in arrivo sono in <code>a0</code>, <code>a1</code>, ecc. (o <code>fa0</code>, <code>fa1</code> per float/double). Probabilmente vorrai salvarli subito in registri <code>s</code> (o <code>fs</code>) se devi usarli dopo una <code>jal</code> (chiamata a funzione).</li>
+        </ul>
+        <p><strong>Esempio per <code>sum_array(int arr[], int size)</code>:</strong></p>
+        <ul>
+            <li><code>arr</code> (in <code>a0</code>) -> Lo lascio in <code>a0</code> (o lo copio in <code>s2</code>).</li>
+            <li><code>size</code> (in <code>a1</code>) -> Lo lascio in <code>a1</code> (o lo copio in <code>s3</code>).</li>
+            <li><code>sum</code> -> Lo metto in <code>s0</code>.</li>
+            <li><code>i</code> -> Lo metto in <code>s1</code>.</li>
+            <li><strong>Registri <code>s</code> usati:</strong> <code>s0</code>, <code>s1</code>.</li>
+        </ul>
+
+        <h3>Step 2: Il Prologo (Setup della Funzione)</h3>
+        <p>Ogni funzione (tranne le più banali) inizia con un "prologo" per preparare lo stack.</p>
+        <ul>
+            <li><strong>Allocare Stack:</strong> Fai spazio per tutto ciò che devi salvare. <code>addi sp, sp, -N</code>
+                <ul>
+                    <li><code>N</code> deve essere un multiplo di 16 (per allineamento).</li>
+                    <li>Quanto spazio? 8 byte per <code>ra</code> + 8 byte per <em>ogni</em> registro <code>s</code> (o <code>fs</code>) che hai deciso di usare.</li>
+                </ul>
+            </li>
+            <li><strong>Salvare Indirizzo Ritorno:</strong> Salva <code>ra</code> sullo stack. <code>sd ra, N-8(sp)</code></li>
+            <li><strong>Salvare Registri <code>s</code>:</strong> Salva <em>tutti</em> i registri <code>s</code> (e <code>fs</code>) che hai pianificato di usare. <code>sd s0, N-16(sp)</code>, <code>fsd fs0, N-24(sp)</code>, ecc.</li>
+        </ul>
+        <p><strong>Esempio di prologo (usando <code>s0</code>, <code>s1</code>):</strong></p>
+        <pre><code># Spazio: 8 (per ra) + 8 (per s0) + 8 (per s1) = 24. Lo allineiamo a 32.
+SUM_ARRAY:
+    addi sp, sp, -32  # 1. Alloca 32 byte
+    sd   ra, 24(sp)   # 2. Salva ra
+    sd   s0, 16(sp)   # 3. Salva s0
+    sd   s1, 8(sp)    # 3. Salva s1</code></pre>
+
+        <h3>Step 3: Il Corpo (La Logica)</h3>
+        <p>Ora traduci la logica C usando le istruzioni e i registri che hai scelto.</p>
+        <ul>
+            <li><strong>Aritmetica:</strong> Usa <code>addiw</code>, <code>subw</code>, <code>slli</code>, ecc.</li>
+            <li><strong>Virgola Mobile:</strong> Usa <code>fadd.d</code>, <code>fmul.s</code>, ecc.</li>
+            <li><strong>Accesso Memoria:</strong> Usa <code>lw</code> / <code>sw</code> (per <code>int</code>) o <code>fld</code> / <code>fsd</code> (per <code>double</code>) per accedere allo stack o agli array.</li>
+            <li><strong>Logica:</strong> Per <code>if</code> e <code>while</code>, usa le istruzioni <code>b</code> (branch) per saltare alle etichette (es. <code>.L_LOOP_END</code>).</li>
+        </ul>
+
+        <h3>Step 4: L'Epilogo (Cleanup)</h3>
+        <p>Prima di <code>ret</code>, devi rimettere tutto a posto. È l'<em>esatto opposto</em> del prologo.</p>
+        <ul>
+            <li><strong>Valore di Ritorno:</strong> Sposta il tuo risultato finale in <code>a0</code> (o <code>fa0</code>). <code>mv a0, s0</code> (se il risultato era in <code>s0</code>).</li>
+            <li><strong>Ripristinare Registri <code>s</code>:</strong> Ricarica i registri <code>s</code> (e <code>fs</code>) dallo stack. <code>ld s1, 8(sp)</code>, <code>ld s0, 16(sp)</code>.</li>
+            <li><strong>Ripristinare Indirizzo Ritorno:</strong> Ricarica <code>ra</code>. <code>ld ra, 24(sp)</code>.</li>
+            <li><strong>Deallocare Stack:</strong> Ripristina il puntatore allo stack. <code>addi sp, sp, 32</code>.</li>
+        </ul>
+        <p><strong>Esempio di epilogo:</strong></p>
+        <pre><code>.L_LOOP_END:
+    mv   a0, s0       # 1. Risultato (sum) in a0
+    ld   s1, 8(sp)    # 2. Ripristina s1
+    ld   s0, 16(sp)   # 2. Ripristina s0
+    ld   ra, 24(sp)   # 3. Ripristina ra
+    addi sp, sp, 32   # 4. Dealloca stack</code></pre>
+
+        <h3>Step 5: Il Ritorno</h3>
+        <p>L'ultima istruzione della tua funzione.</p>
+        <ul>
+            <li><strong>Ritorna:</strong> <code>ret</code></li>
+        </ul>
+
+    </div></body>
+</html>
